@@ -1,11 +1,11 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-  <h2>Active Listings</h2>
+  <h2>Your Watchlist</h2>
   <ul class="list-group">
-    {% for listing in active_listings %}
+    {% for listing in watchlist_items %}
       <li class="list-group-item">
-        <h3>{{ listing.title }}</h3>
+        <a href="{% url 'listing_detail' listing.id %}">{{ listing.title }}</a>
         <p>{{ listing.description }}</p>
         <p>Current Price: ${{ listing.current_price }}</p>
         {% if listing.image_url %}
@@ -13,7 +13,7 @@
         {% endif %}
       </li>
     {% empty %}
-      <li class="list-group-item">No active listings available.</li>
+      <li class="list-group-item">Your watchlist is empty.</li>
     {% endfor %}
   </ul>
 {% endblock %}

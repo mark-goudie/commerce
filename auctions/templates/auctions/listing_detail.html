@@ -1,0 +1,60 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+  <h2>{{ listing.title }}</h2>
+  <p>{{ listing.description }}</p>
+  <p>Starting Bid: ${{ listing.starting_bid }}</p>
+  <p>Current Price: ${{ listing.current_price }}</p>
+  {% if listing.image_url %}
+    <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="img-fluid">
+  {% endif %}
+
+  {% if user.is_authenticated %}
+    {% if user != listing.owner %}
+      {% if listing.is_active %}
+        <form method="post" action="{% url 'watchlist_toggle' listing_id=listing.id %}">
+          {% csrf_token %}
+          {% if user in listing.watchlist.all %}
+            <button type="submit" class="btn btn-warning">Remove from Watchlist</button>
+          {% else %}
+            <button type="submit" class="btn btn-primary">Add to Watchlist</button>
+          {% endif %}
+        </form>
+
+        <form method="post" action="{% url 'place_bid' listing_id=listing.id %}">
+          {% csrf_token %}
+          <label for="bid_amount">Bid Amount:</label>
+          <input type="number" name="bid_amount" step="0.01" required>
+          <button type="submit" class="btn btn-success">Place Bid</button>
+        </form>
+      {% endif %}
+    {% endif %}
+
+    {% if user == listing.owner %}
+      {% if listing.is_active %}
+        <form method="post" action="{% url 'close_auction' listing_id=listing.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Close Auction</button>
+        </form>
+      {% endif %}
+    {% endif %}
+
+    <form method="post" action="{% url 'add_comment' listing_id=listing.id %}">
+      {% csrf_token %}
+      <label for="comment_text">Add Comment:</label>
+      <textarea name="comment_text" required></textarea>
+      <button type="submit" class="btn btn-primary">Add Comment</button>
+    </form>
+  {% endif %}
+
+  <h3>Comments</h3>
+  <ul class="list-group">
+    {% for comment in listing.comments.all %}
+      <li class="list-group-item">
+        <strong>{{ comment.user.username }}</strong>: {{ comment.text }}
+      </li>
+    {% empty %}
+      <li class="list-group-item">No comments yet.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
