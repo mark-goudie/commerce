@@ -3,6 +3,7 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.db.models import Max
 
 from .models import User, Listing, Bid, Comment, Watchlist, Category
 from .forms import ListingForm
@@ -72,7 +73,8 @@ def create_listing(request):
             new_listing = form.save(commit=False)
             new_listing.owner = request.user
             new_listing.save()
-            return redirect('listings')
+            return redirect('listing_detail', listing_id=new_listing.id)
+
     else:
         form = ListingForm()
 

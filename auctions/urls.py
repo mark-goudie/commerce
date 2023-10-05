@@ -1,5 +1,4 @@
 from django.urls import path
-
 from . import views
 
 urlpatterns = [
@@ -12,5 +11,5 @@ urlpatterns = [
     path("watchlist/", views.watchlist, name="watchlist"),
     path("categories/", views.category_list, name="category_list"),
     path("categories/<int:category_id>/",
-         views.category_listings, name="category_listings"),
+         views.category_listings, name="category_listings")
 ]

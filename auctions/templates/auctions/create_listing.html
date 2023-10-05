@@ -4,20 +4,27 @@
   <h2>Create a New Listing</h2>
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
 
-    <label for="image_url">Image URL (optional):</label>
-    <input type="url" id="image_url" name="image_url" class="form-control">
+    <label for="{{ form.title.id_for_label }}">Title:</label>
+    <input type="text" id="{{ form.title.id_for_label }}" name="{{ form.title.name }}" class="form-control" value="{{ form.title.value|default:'' }}">
+
+    <label for="{{ form.description.id_for_label }}">Description:</label>
+    <textarea id="{{ form.description.id_for_label }}" name="{{ form.description.name }}" class="form-control">{{ form.description.value|default:'' }}</textarea>
+
+    <label for="{{ form.starting_bid.id_for_label }}">Starting Bid:</label>
+    <input type="text" id="{{ form.starting_bid.id_for_label }}" name="{{ form.starting_bid.name }}" class="form-control" value="{{ form.starting_bid.value|default:'' }}">
+
+    <label for="{{ form.image.id_for_label }}">Image URL (optional):</label>
+    <input type="url" id="{{ form.image.id_for_label }}" name="{{ form.image.name }}" class="form-control" value="{{ form.image.value|default:'' }}">
 
     <label for="category">Category (optional):</label>
     <select id="category" name="category" class="form-control">
       <option value="">Select a category...</option>
-      <option value="Fashion">Fashion</option>
-      <option value="Toys">Toys</option>
-      <option value="Electronics">Electronics</option>
-      <option value="Home">Home</option>
-      <!-- Add more categories as needed -->
+      <option value="Piano's">Piano's</option>
+      <option value="Keyboard's">Keyboard's</option>
+      <option value="Guitars">Guitars</option>
     </select>
+    <br/>
 
     <button type="submit" class="btn btn-primary">Create Listing</button>
   </form>
