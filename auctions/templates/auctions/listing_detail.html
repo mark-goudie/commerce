@@ -2,10 +2,22 @@
 
 {% block body %}
 
+{% if messages %}
+<div class="container mt-3 badge bg-warning">
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} fs-6">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+
 <div class="container mt-4">
 
     <!-- Authentication & Ownership Badges -->
     <div class="mb-3">
+        <span class="badge bg-info">For testing purposes only:</span>
         {% if user.is_authenticated %}
         <span class="badge bg-primary">Authenticated</span>
         {% else %}
@@ -27,6 +39,8 @@
         <h2 class="card-title">{{ listing.title }}</h2>
         <p class="card-text">{{ listing.description }}</p>
         <p class="card-text">Starting Bid: ${{ listing.starting_bid }}</p>
+
+        <!-- Display current bid -->
         {% if listing.current_bid > listing.starting_bid %}
         <p class="card-text my-3 fw-bold">Current Bid: ${{ listing.current_bid }}</p>
         {% else %}

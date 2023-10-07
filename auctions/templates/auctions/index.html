@@ -15,8 +15,8 @@
                                 <h5 class="card-title">{{ listing.title }}</h5>
                                 <p class="card-text">{{ listing.description|truncatechars:100 }}</p>
                                 <p class="card-text"><strong>Starting Price:</strong> ${{ listing.starting_bid }}</p>
-                                {% if listing.current_price > listing.starting_bid %}
-                                <p class="card-text"><strong>Current Bid:</strong> ${{ listing.current_price }}</p>
+                                {% if listing.current_bid > listing.starting_bid %}
+                                <p class="card-text"><strong>Current Bid:</strong> ${{ listing.current_bid }}</p>
                                 {% else %}
                                 <p class="card-text">No bids yet.</p>
                                 {% endif %}
