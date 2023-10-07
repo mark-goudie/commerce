@@ -20,6 +20,8 @@ class Listing(models.Model):
     closed = models.BooleanField(default=False)
     watchlist_items = models.ManyToManyField(
         User, related_name='watchlisted_listings', blank=True)
+    winner = models.ForeignKey(User, on_delete=models.SET_NULL,
+                               null=True, blank=True, related_name="winning_listings")
 
     def __str__(self):
         return self.title
@@ -27,7 +29,6 @@ class Listing(models.Model):
 
 class Bid(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
-    # this is the field that seems to be missing or incorrectly named
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.FloatField()
 

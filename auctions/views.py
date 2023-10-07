@@ -20,12 +20,10 @@ def index(request):
 def login_view(request):
     if request.method == "POST":
 
-        # Attempt to sign user in
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
 
-        # Check if authentication successful
         if user is not None:
             login(request, user)
             return HttpResponseRedirect(reverse("index"))
@@ -68,9 +66,7 @@ def register(request):
 
 
 def create_listing(request):
-    # Check if the user is authenticated
     if not request.user.is_authenticated:
-        # assuming 'login' is the name of your login view
         return redirect('login')
 
     if request.method == 'POST':
@@ -101,13 +97,11 @@ def listing_detail(request, listing_id):
 
 
 def watchlist(request):
-    # Check if the user is authenticated
     if not request.user.is_authenticated:
-        # assuming 'login' is the name of your login view
         return redirect('login')
 
     user = request.user
-    watchlist_items = user.watchlisted_listings.filter(active=True)
+    watchlist_items = user.watchlisted_listings.all()
     return render(request, "auctions/watchlist.html", {"watchlist_items": watchlist_items})
 
 
@@ -150,7 +144,6 @@ def place_bid(request, listing_id):
             Bid.objects.create(
                 listing=listing, user=request.user, amount=bid_amount)
             listing.current_bid = bid_amount
-            # Assuming you have a current_bidder field in Listing model
             listing.current_bidder = request.user
             listing.save()
         else:
@@ -165,11 +158,9 @@ def watchlist_toggle(request, listing_id):
     listing = get_object_or_404(Listing, id=listing_id)
 
     if listing.watchlist_items.filter(id=user.id).exists():
-        # If listing is already in user's watchlist, remove it
         listing.watchlist_items.remove(user)
         messages.success(request, "Listing removed from watchlist!")
     else:
-        # Otherwise, add it to the watchlist
         listing.watchlist_items.add(user)
         messages.success(request, "Listing added to watchlist!")
 
@@ -178,6 +169,12 @@ def watchlist_toggle(request, listing_id):
 
 def close_auction(request, listing_id):
     listing = get_object_or_404(Listing, id=listing_id)
+
+    highest_bid = listing.bid_set.order_by('-amount').first()
+    if highest_bid:
+        listing.winner = highest_bid.user
+        listing.save()
+
     listing.active = False
     listing.save()
     messages.success(request, "Auction closed!")

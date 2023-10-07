@@ -15,7 +15,6 @@
 
 <div class="container mt-4">
 
-    <!-- Authentication & Ownership Badges -->
     <div class="mb-3">
         <span class="badge bg-info">For testing purposes only:</span>
         {% if user.is_authenticated %}
@@ -30,17 +29,13 @@
         <span class="badge bg-warning">Not Owner</span>
         {% endif %}
 
-        <!-- Listing Status Badge -->
         <span class="badge {% if listing.active %}bg-success{% else %}bg-danger{% endif %}">Listing is {% if listing.active %}active{% else %}inactive{% endif %}</span>
     </div>
 
-    <!-- Listing Info Card -->
     <div class="card-body">
         <h2 class="card-title">{{ listing.title }}</h2>
         <p class="card-text">{{ listing.description }}</p>
         <p class="card-text">Starting Bid: ${{ listing.starting_bid }}</p>
-
-        <!-- Display current bid -->
         {% if listing.current_bid > listing.starting_bid %}
         <p class="card-text my-3 fw-bold">Current Bid: ${{ listing.current_bid }}</p>
         {% else %}
@@ -48,18 +43,15 @@
         {% endif %}
     </div>
 
-    <!-- Image Card -->
     {% if listing.image %}
     <div class="card mb-3">
         <img src="{{ listing.image }}" alt="{{ listing.title }}" class="card-img-top" style="max-height: 200px; object-fit: contain;">
     </div>
     {% endif %}
 
-    <!-- User Actions -->
     {% if user.is_authenticated %}
     <div class="my-3">
         {% if user != listing.owner and listing.active %}
-        <!-- Watchlist Toggle -->
         <form method="post" action="{% url 'watchlist_toggle' listing_id=listing.id %}" class="mb-2">
             {% csrf_token %}
             {% if user in listing.watchlist_items.all %}
@@ -69,7 +61,6 @@
             {% endif %}
         </form>
 
-        <!-- Place Bid -->
         <form method="post" action="{% url 'place_bid' listing_id=listing.id %}" class="mb-2">
             {% csrf_token %}
             <div class="form-group mb-3">
@@ -81,14 +72,12 @@
         {% endif %}
 
         {% if user == listing.owner and listing.active %}
-        <!-- Close Auction -->
         <form method="post" action="{% url 'close_auction' listing_id=listing.id %}" class="mb-2">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">Close Auction</button>
         </form>
         {% endif %}
 
-        <!-- Add Comment -->
         <form method="post" action="{% url 'add_comment' listing_id=listing.id %}" class="mb-3">
             {% csrf_token %}
             <div class="form-group mb-3">
@@ -100,7 +89,12 @@
     </div>
     {% endif %}
 
-    <!-- Comments Section -->
+    {% if not listing.active and user == listing.winner %}
+    <div class="alert alert-success">
+        Congratulations! You won this auction.
+    </div>
+    {% endif %}
+
   <h4 class="mt-4">Comments</h4>
   {% for comment in listing.comment_set.all %}
   <div class="card mb-2">
