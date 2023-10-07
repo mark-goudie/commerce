@@ -13,3 +13,7 @@ body {
   font-weight: 400;
   overflow-x: hidden;
 }
+
+.no-under {
+  text-decoration: none;
+}
