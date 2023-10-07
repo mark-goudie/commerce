@@ -1,19 +1,28 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-  <h2>Your Watchlist</h2>
-  <ul class="list-group">
-    {% for listing in watchlist_items %}
-      <li class="list-group-item">
-        <a href="{% url 'listing_detail' listing.id %}">{{ listing.title }}</a>
-        <p>{{ listing.description }}</p>
-        <p>Current Price: ${{ listing.current_price }}</p>
-        {% if listing.image_url %}
-          <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="img-fluid">
-        {% endif %}
-      </li>
-    {% empty %}
-      <li class="list-group-item">Your watchlist is empty.</li>
-    {% endfor %}
-  </ul>
+
+<div class="container mt-5">
+    <h2>Your Watchlist</h2>
+    
+    <ul class="list-group mt-3">
+        {% for listing in watchlist_items %}
+        <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <a href="{% url 'listing_detail' listing.id %}" class="h5">{{ listing.title }}</a>
+                    <p class="mt-2">{{ listing.description }}</p>
+                    <p>Current Price: <strong>${{ listing.current_price }}</strong></p>
+                </div>
+                {% if listing.image %}
+                <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="img-fluid" style="max-width: 150px;">
+                {% endif %}
+            </div>
+        </li>
+        {% empty %}
+        <li class="list-group-item">Your watchlist is empty.</li>
+        {% endfor %}
+    </ul>
+</div>
+
 {% endblock %}

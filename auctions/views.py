@@ -1,11 +1,12 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.db.models import Max
+from django.contrib import messages
 
-from .models import User, Listing, Bid, Comment, Watchlist, Category
+from .models import User, Listing, Bid, Comment, Watchlist, Category, Comment
 from .forms import ListingForm
 
 
@@ -44,7 +45,6 @@ def register(request):
         username = request.POST["username"]
         email = request.POST["email"]
 
-        # Ensure password matches confirmation
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
         if password != confirmation:
@@ -52,7 +52,6 @@ def register(request):
                 "message": "Passwords must match."
             })
 
-        # Attempt to create new user
         try:
             user = User.objects.create_user(username, email, password)
             user.save()
@@ -72,6 +71,7 @@ def create_listing(request):
         if form.is_valid():
             new_listing = form.save(commit=False)
             new_listing.owner = request.user
+            new_listing.current_bid = new_listing.starting_bid
             new_listing.save()
             return redirect('listing_detail', listing_id=new_listing.id)
 
@@ -82,39 +82,9 @@ def create_listing(request):
 
 
 def listing_detail(request, listing_id):
-    try:
-        listing = Listing.objects.get(pk=listing_id)
-    except Listing.DoesNotExist:
-        return HttpResponseBadRequest("Listing not found")
-
+    listing = get_object_or_404(Listing, pk=listing_id)
     current_bid = Bid.objects.filter(
         listing=listing).aggregate(Max("amount"))["amount__max"]
-
-    if request.method == "POST":
-        action = request.POST.get("action")
-        if action == "watchlist_toggle":
-            Watchlist.toggle_watchlist(request.user, listing)
-        elif action == "place_bid":
-            bid_amount = float(request.POST.get("bid_amount"))
-            if current_bid is None or bid_amount > current_bid:
-                Bid.objects.create(
-                    listing=listing, user=request.user, amount=bid_amount)
-                listing.current_price = bid_amount
-                listing.save()
-            else:
-                return HttpResponseBadRequest("Invalid bid amount")
-        elif action == "close_auction":
-            if request.user == listing.owner and listing.is_active:
-                winning_bid = Bid.objects.filter(
-                    listing=listing).order_by("-amount").first()
-                if winning_bid:
-                    listing.winner = winning_bid.user
-                    listing.is_active = False
-                    listing.save()
-        elif action == "add_comment":
-            comment_text = request.POST.get("comment_text")
-            Comment.objects.create(
-                listing=listing, user=request.user, text=comment_text)
 
     return render(request, "auctions/listing_detail.html", {
         "listing": listing,
@@ -136,5 +106,67 @@ def category_list(request):
 
 def category_listings(request, category_id):
     category = Category.objects.get(id=category_id)
-    listings = Listing.objects.filter(category=category, closed=False)
+    listings = Listing.objects.filter(category=category, active=True)
     return render(request, "auctions/category_listings.html", {"category": category, "listings": listings})
+
+
+def add_comment(request, listing_id):
+    if request.method == "POST":
+        content = request.POST.get("comment_text")
+        listing = get_object_or_404(Listing, id=listing_id)
+        comment = Comment.objects.create(
+            listing=listing, user=request.user, content=content)
+        comment.save()
+        messages.success(request, "Comment added successfully!")
+        return redirect('listing_detail', listing_id=listing_id)
+    else:
+        messages.error(request, "Error adding comment!")
+        return redirect('listing_detail', listing_id=listing_id)
+
+
+def place_bid(request, listing_id):
+    if not request.user.is_authenticated:
+        messages.error(request, "You need to be logged in to place a bid.")
+        return redirect('login')
+
+    listing = get_object_or_404(Listing, id=listing_id)
+
+    if request.method == "POST":
+        bid_amount = float(request.POST.get("bid_amount"))
+
+        if (listing.current_bid and bid_amount > listing.current_bid) or (not listing.current_bid and bid_amount > listing.starting_bid):
+            Bid.objects.create(
+                listing=listing, user=request.user, amount=bid_amount)
+            listing.current_bid = bid_amount
+            # Assuming you have a current_bidder field in Listing model
+            listing.current_bidder = request.user
+            listing.save()
+        else:
+            messages.error(
+                request, "Your bid must be higher than the current bid.")
+
+        return redirect('listing_detail', listing_id=listing.id)
+
+
+def watchlist_toggle(request, listing_id):
+    user = request.user
+    listing = get_object_or_404(Listing, id=listing_id)
+
+    if listing.watchlist.filter(id=user.id).exists():
+        # If listing is already in user's watchlist, remove it
+        listing.watchlist.remove(user)
+        messages.success(request, "Listing removed from watchlist!")
+    else:
+        # Otherwise, add it to the watchlist
+        listing.watchlist.add(user)
+        messages.success(request, "Listing added to watchlist!")
+
+    return redirect('listing_detail', listing_id=listing.id)
+
+
+def close_auction(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+    listing.active = False
+    listing.save()
+    messages.success(request, "Auction closed!")
+    return redirect('listing_detail', listing_id=listing.id)

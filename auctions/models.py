@@ -16,8 +16,10 @@ class Listing(models.Model):
     category = models.CharField(max_length=50, blank=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    closed = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
+    closed = models.BooleanField(default=False)
+    watchlist_items = models.ManyToManyField(
+        User, related_name='watchlisted_listings', blank=True)
 
     def __str__(self):
         return self.title
@@ -25,12 +27,9 @@ class Listing(models.Model):
 
 class Bid(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
-    bidder = models.ForeignKey(User, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Bid by {self.bidder.username} on {self.listing.title}"
+    # this is the field that seems to be missing or incorrectly named
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.FloatField()
 
 
 class Comment(models.Model):
