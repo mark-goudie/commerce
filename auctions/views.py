@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.db.models import Max
 from django.contrib import messages
 
-from .models import User, Listing, Bid, Comment, Watchlist, Category, Comment
+from .models import User, Listing, Bid, Comment, Category
 from .forms import ListingForm
 
 
@@ -89,13 +89,13 @@ def listing_detail(request, listing_id):
     return render(request, "auctions/listing_detail.html", {
         "listing": listing,
         "current_bid": current_bid,
-        "user_watchlist": listing.watchlist.filter(user=request.user),
+        "user_watchlist": listing.watchlist_items.filter(id=request.user.id),
     })
 
 
 def watchlist(request):
     user = request.user
-    watchlist_items = user.watchlist.all()
+    watchlist_items = user.watchlisted_listings.all()
     return render(request, "auctions/watchlist.html", {"watchlist_items": watchlist_items})
 
 
@@ -115,7 +115,7 @@ def add_comment(request, listing_id):
         content = request.POST.get("comment_text")
         listing = get_object_or_404(Listing, id=listing_id)
         comment = Comment.objects.create(
-            listing=listing, user=request.user, content=content)
+            listing=listing, commenter=request.user, content=content)
         comment.save()
         messages.success(request, "Comment added successfully!")
         return redirect('listing_detail', listing_id=listing_id)
@@ -152,13 +152,13 @@ def watchlist_toggle(request, listing_id):
     user = request.user
     listing = get_object_or_404(Listing, id=listing_id)
 
-    if listing.watchlist.filter(id=user.id).exists():
+    if listing.watchlist_items.filter(id=user.id).exists():
         # If listing is already in user's watchlist, remove it
-        listing.watchlist.remove(user)
+        listing.watchlist_items.remove(user)
         messages.success(request, "Listing removed from watchlist!")
     else:
         # Otherwise, add it to the watchlist
-        listing.watchlist.add(user)
+        listing.watchlist_items.add(user)
         messages.success(request, "Listing added to watchlist!")
 
     return redirect('listing_detail', listing_id=listing.id)

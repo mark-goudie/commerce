@@ -42,13 +42,6 @@ class Comment(models.Model):
         return f"Comment by {self.commenter.username} on {self.listing.title}"
 
 
-class Watchlist(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="watchlist")
-    listing = models.ForeignKey(
-        Listing, on_delete=models.CASCADE, related_name="watchlist")
-
-
 class Category(models.Model):
     name = models.CharField(max_length=255)
 
