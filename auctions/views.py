@@ -1,3 +1,4 @@
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -5,6 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.db.models import Max
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 from .models import User, Listing, Bid, Comment, Category
 from .forms import ListingForm
@@ -66,6 +68,11 @@ def register(request):
 
 
 def create_listing(request):
+    # Check if the user is authenticated
+    if not request.user.is_authenticated:
+        # assuming 'login' is the name of your login view
+        return redirect('login')
+
     if request.method == 'POST':
         form = ListingForm(request.POST)
         if form.is_valid():
@@ -94,8 +101,13 @@ def listing_detail(request, listing_id):
 
 
 def watchlist(request):
+    # Check if the user is authenticated
+    if not request.user.is_authenticated:
+        # assuming 'login' is the name of your login view
+        return redirect('login')
+
     user = request.user
-    watchlist_items = user.watchlisted_listings.all()
+    watchlist_items = user.watchlisted_listings.filter(active=True)
     return render(request, "auctions/watchlist.html", {"watchlist_items": watchlist_items})
 
 
@@ -142,7 +154,7 @@ def place_bid(request, listing_id):
             listing.current_bidder = request.user
             listing.save()
         else:
-            messages.error(
+            messages.warning(
                 request, "Your bid must be higher than the current bid.")
 
         return redirect('listing_detail', listing_id=listing.id)

@@ -3,9 +3,9 @@
 {% block body %}
 
 {% if messages %}
-<div class="container mt-3 badge bg-warning">
+<div class="container mt-3">
     {% for message in messages %}
-    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} fs-6">
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} fs-6 fw-bold">
         {{ message }}
     </div>
     {% endfor %}
@@ -62,7 +62,7 @@
         <!-- Watchlist Toggle -->
         <form method="post" action="{% url 'watchlist_toggle' listing_id=listing.id %}" class="mb-2">
             {% csrf_token %}
-            {% if user in listing.users_watchlist.all %}
+            {% if user in listing.watchlist_items.all %}
             <button type="submit" class="btn btn-warning">Remove from Watchlist</button>
             {% else %}
             <button type="submit" class="btn btn-primary">Add to Watchlist</button>
